@@ -4,331 +4,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sky Dental Clinic - Bolor AI</title>
+    <title>MindSync AI Psychologist</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,700;1,300&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --accent-color: #DAA520;
+            --text-color: #e0e0e0;
+            --secondary-text: #a0a0a0;
+            --bubble-user: #2d2d2d;
+            --bubble-ai: #2a2518;
+        }
+
         body {
-            background-color: #121212;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            justify-content: space-between;
+            height: 100vh;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .header-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            flex-shrink: 0;
         }
 
         h1 {
+            font-family: 'Merriweather', serif;
             font-weight: 300;
-            margin-bottom: 40px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-style: italic;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+            color: var(--accent-color);
             text-align: center;
+            font-size: 1.5rem;
         }
 
-        .phone-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--secondary-text);
             margin-bottom: 20px;
         }
 
-        .call-btn {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-            transition: all 0.3s ease;
-            z-index: 2;
+        .visualizer-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 10px;
         }
 
-        .call-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 40px rgba(76, 175, 80, 0.8);
-        }
-
-        .call-btn svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-
-        .pulse {
+        .visualizer-ring {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: rgba(76, 175, 80, 0.3);
-            animation: pulse-animation 2s infinite;
-            z-index: 1;
-            display: none;
+            border: 1px solid rgba(218, 165, 32, 0.2);
+            box-shadow: 0 0 15px rgba(218, 165, 32, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .status {
-            margin-top: 10px;
-            font-size: 1.5rem;
-            color: #ffffff;
-            height: 30px;
-            text-align: center;
+        .visualizer-core {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #DAA520 0%, #8B6914 100%);
+            opacity: 0.8;
+            box-shadow: 0 0 20px rgba(218, 165, 32, 0.4);
+            transition: all 0.2s ease;
         }
 
-        .transcript {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 600px;
-            text-align: left;
-            color: #e0e0e0;
-            font-size: 1rem;
-            line-height: 1.5;
-            height: 200px;
-            overflow-y: auto;
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
+        .listening .visualizer-ring {
+            border-color: rgba(218, 165, 32, 0.6);
+            transform: scale(1.1);
+            animation: pulse-ring 1.5s infinite;
         }
 
-        #debugLog {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #888;
-            height: 100px;
-            overflow-y: auto;
-            width: 100%;
-            max-width: 600px;
-            background-color: #111;
-            padding: 10px;
-            border-radius: 4px;
-            font-family: monospace;
-            border: 1px solid #333;
+        .listening .visualizer-core {
+            transform: scale(0.9);
+            background: #ff4444;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
         }
 
-        @keyframes pulse-animation {
+        .thinking .visualizer-ring {
+            animation: spin 2s linear infinite;
+            border-top-color: var(--accent-color);
+        }
+
+        .speaking .visualizer-core {
+            animation: pulse-core 0.5s infinite alternate;
+        }
+
+        @keyframes pulse-ring {
             0% {
-                transform: scale(0.8);
-                opacity: 1;
+                transform: scale(1);
+                opacity: 0.5;
             }
 
             100% {
-                transform: scale(2);
+                transform: scale(1.5);
                 opacity: 0;
             }
         }
 
-        .active .pulse {
+        @keyframes pulse-core {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .log-container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .chat-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 0 10px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--bubble-user);
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            background-color: var(--bubble-ai);
+            color: #e0d0b0;
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(218, 165, 32, 0.1);
+        }
+
+        .message-role {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 4px;
             display: block;
         }
 
-        .active .call-btn {
-            background: linear-gradient(135deg, #F44336, #C62828);
-            box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+        .controls-container {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding-top: 10px;
+            background: var(--bg-color);
+            z-index: 10;
         }
 
-        .controls {
-            margin-top: 20px;
+        .push-to-talk-btn {
+            width: 220px;
+            height: 50px;
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .push-to-talk-btn:active,
+        .push-to-talk-btn.active {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 30px rgba(218, 165, 32, 0.4);
+            transform: scale(0.98);
+        }
+
+        .push-to-talk-btn:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .text-input-container {
             display: flex;
             gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 10px;
         }
 
-        .btn-small {
-            padding: 8px 16px;
+        #textInput {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #textInput:focus {
+            border-color: var(--accent-color);
+        }
+
+        #sendBtn {
+            background: var(--accent-color);
             border: none;
-            border-radius: 4px;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-weight: 500;
+            color: #000;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        #sendBtn:hover {
+            transform: scale(1.1);
+        }
+
+        #sendBtn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-text {
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            height: 20px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>SKY DENTAL CLINIC</h1>
+    <div class="header-container">
+        <h1>MindSync AI</h1>
+        <div class="subtitle">Experienced Psychologist AI</div>
 
-    <div class="phone-container" id="phoneContainer">
-        <div class="pulse"></div>
-        <button class="call-btn" id="callBtn" onclick="toggleCall()">
-            <!-- Phone Icon -->
-            <svg viewBox="0 0 24 24">
-                <path
-                    d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+        <div class="visualizer-container" id="visualizer">
+            <div class="visualizer-ring"></div>
+            <div class="visualizer-core"></div>
+        </div>
+    </div>
+
+    <div class="log-container">
+        <div class="chat-scroll" id="chatLog">
+            <div class="message ai">
+                <span class="message-role">MindSync AI</span>
+                Hello. I am MindSync AI. I am here to listen. How are you feeling today?
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-container">
+        <div class="status-text" id="statusText">Ready</div>
+
+        <button class="push-to-talk-btn" id="talkBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
+            Hold to Speak
         </button>
+
+        <div class="text-input-container">
+            <input type="text" id="textInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
     </div>
-
-    <div class="status" id="statusText">Залгах</div>
-
-    <!-- Volume Meter -->
-    <div style="width: 200px; height: 6px; background: #333; margin-top: 15px; border-radius: 3px; overflow: hidden;">
-        <div id="volumeMeter" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.1s;"></div>
-    </div>
-
-    <!-- Manual Controls -->
-    <div class="controls">
-        <button class="btn-small" onclick="stopCall()" style="background: #d32f2f; color: white;">Таслах</button>
-        <button class="btn-small" onclick="manualSend()" style="background: #2196F3; color: white;">Ярьж
-            дууслаа</button>
-    </div>
-
-    <!-- Transcript -->
-    <div class="transcript" id="transcript"></div>
-
-    <!-- Debug Log -->
-    <div id="debugLog"></div>
 
     <script>
-        let isCalling = false;
+        const talkBtn = document.getElementById('talkBtn');
+        const statusText = document.getElementById('statusText');
+        const visualizer = document.getElementById('visualizer');
+        const chatLog = document.getElementById('chatLog');
+        const textInput = document.getElementById('textInput');
+        const sendBtn = document.getElementById('sendBtn');
+
         let mediaRecorder;
         let audioChunks = [];
-        let audioContext;
-        let analyser;
-        let silenceStart = Date.now();
-        let isSpeaking = false;
-        let silenceThreshold = 1500; // 1.5s silence
-        let volumeThreshold = 0.01; // More sensitive
-        let checkSilenceInterval;
+        let isRecording = false;
 
-        function log(msg) {
-            console.log(msg);
-            const d = document.getElementById('debugLog');
-            d.innerText = msg + "\n" + d.innerText;
-        }
-
-        async function toggleCall() {
-            if (!isCalling) {
-                await startCall();
-            } else {
-                stopCall();
-            }
-        }
-
-        async function startCall() {
+        window.addEventListener('load', async () => {
             try {
-                log("Микрофон хайж байна...");
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                log("Микрофон олдлоо.");
-
-                isCalling = true;
-                document.getElementById('phoneContainer').classList.add('active');
-                document.getElementById('statusText').innerText = "Холбогдож байна...";
-
-                // Reset backend
                 await fetch('/reset');
+            } catch (e) {
+                console.error("Failed to reset session", e);
+            }
+        });
 
-                // Setup Audio Context for Silence Detection
-                audioContext = new AudioContext();
-                const source = audioContext.createMediaStreamSource(stream);
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                source.connect(analyser);
+        talkBtn.addEventListener('mousedown', startRecording);
+        talkBtn.addEventListener('mouseup', stopRecording);
+        talkBtn.addEventListener('mouseleave', () => {
+            if (isRecording) stopRecording();
+        });
 
-                // Setup MediaRecorder
+        talkBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startRecording();
+        });
+        talkBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopRecording();
+        });
+
+        sendBtn.addEventListener('click', sendText);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendText();
+        });
+
+
+        async function startRecording() {
+            if (isRecording) return;
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
 
                 mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
+                    if (event.data.size > 0) audioChunks.push(event.data);
                 };
 
-                mediaRecorder.onstop = async () => {
-                    log("Бичлэг зогслоо. Хэсгүүд: " + audioChunks.length);
-                    if (audioChunks.length > 0) {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        audioChunks = [];
-                        await sendAudioToAI(audioBlob);
-                    } else {
-                        log("Дуу бичигдсэнгүй.");
-                    }
-                };
-
-                // Start silence detection loop
-                checkSilenceInterval = setInterval(checkSilence, 100);
-
-                // Start recording immediately
                 mediaRecorder.start();
-                document.getElementById('statusText').innerText = "Сонсож байна...";
-                log("Сонсож байна...");
+                isRecording = true;
+
+                talkBtn.classList.add('active');
+                talkBtn.innerHTML = "Listening...";
+                statusText.innerText = "Recording...";
+                visualizer.className = "visualizer-container listening";
 
             } catch (err) {
-                console.error("Error accessing mic:", err);
-                document.getElementById('statusText').innerText = "Микрофон олдсонгүй";
-                log("Алдаа: " + err.message);
+                console.error("Mic Error:", err);
+                statusText.innerText = "Microphone access denied.";
             }
         }
 
-        function stopCall() {
-            isCalling = false;
-            document.getElementById('phoneContainer').classList.remove('active');
-            document.getElementById('statusText').innerText = "Дуудлага дууслаа";
+        function stopRecording() {
+            if (!isRecording || !mediaRecorder) return;
 
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            if (checkSilenceInterval) clearInterval(checkSilenceInterval);
-            if (audioContext) audioContext.close();
+            mediaRecorder.stop();
+            isRecording = false;
+
+            talkBtn.classList.remove('active');
+            talkBtn.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                Hold to Speak
+            `;
+            statusText.innerText = "Processing...";
+            visualizer.className = "visualizer-container thinking";
+            talkBtn.disabled = true;
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                await sendAudioToAI(audioBlob);
+
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            };
         }
 
-        function manualSend() {
-            if (isCalling && mediaRecorder && mediaRecorder.state === 'recording') {
-                log("Гар удирдлагаар илгээлээ.");
-                mediaRecorder.stop();
-            }
-        }
+        async function sendText() {
+            const text = textInput.value.trim();
+            if (!text) return;
 
-        function checkSilence() {
-            if (!isCalling || !analyser) return;
+            addMessageToLog("user", text);
+            textInput.value = "";
+            statusText.innerText = "Thinking...";
+            visualizer.className = "visualizer-container thinking";
+            textInput.disabled = true;
+            sendBtn.disabled = true;
 
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(dataArray);
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
 
-            // Calculate average volume
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                sum += dataArray[i];
-            }
-            const average = sum / dataArray.length;
-            const volume = average / 255;
+                if (!response.ok) throw new Error("Server Error");
+                const data = await response.json();
 
-            // Update visual meter
-            document.getElementById('volumeMeter').style.width = (volume * 1000) + "%";
-
-            if (volume > volumeThreshold) {
-                // User is speaking
-                if (!isSpeaking) {
-                    log("Дуу гарлаа.");
-                    isSpeaking = true;
+                if (data.error) {
+                    statusText.innerText = "Error: " + data.error;
+                } else {
+                    handleAIResponse(data.response, data.audio);
                 }
-                silenceStart = Date.now();
-                document.getElementById('statusText').innerText = "Сонсож байна...";
-            } else {
-                // Silence
-                if (isSpeaking && (Date.now() - silenceStart > silenceThreshold)) {
-                    log("Чимээгүй байна (" + (Date.now() - silenceStart) + "ms). Илгээж байна...");
-                    isSpeaking = false;
 
-                    // Restart recorder to chop the file
-                    if (mediaRecorder.state === 'recording') {
-                        mediaRecorder.stop();
-                    }
-                }
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Connection Error";
+            } finally {
+                textInput.disabled = false;
+                sendBtn.disabled = false;
+                textInput.focus();
             }
         }
 
         async function sendAudioToAI(audioBlob) {
-            document.getElementById('statusText').innerText = "Бодож байна...";
-            log("Аудио илгээж байна (" + audioBlob.size + " bytes)...");
-
             const formData = new FormData();
             formData.append("file", audioBlob);
 
@@ -338,45 +522,60 @@
                     body: formData
                 });
 
-                if (!response.ok) {
-                    throw new Error("Server Error: " + response.statusText);
-                }
+                if (!response.ok) throw new Error("Server Error");
 
                 const data = await response.json();
 
                 if (data.error) {
-                    log("AI Алдаа: " + data.error);
-                    document.getElementById('statusText').innerText = "Алдаа: " + data.error;
+                    statusText.innerText = "Error: " + data.error;
+                    talkBtn.disabled = false;
+                    visualizer.className = "visualizer-container";
                     return;
                 }
 
-                log("AI Хариуллаа: " + data.ai_text);
-
-                // Update Transcript
-                document.getElementById('transcript').innerText += "\nТа: " + data.user_text;
-                document.getElementById('transcript').innerText += "\nAI: " + data.ai_text;
-
-                // Play Audio
-                document.getElementById('statusText').innerText = "Ярьж байна...";
-                const audio = new Audio("data:audio/mp3;base64," + data.audio);
-
-                audio.onended = () => {
-                    if (isCalling) {
-                        document.getElementById('statusText').innerText = "Сонсож байна...";
-                        log("AI ярьж дууслаа. Дахин сонсож байна...");
-                        mediaRecorder.start(); // Start recording again
-                        silenceStart = Date.now(); // Reset silence timer
-                    }
-                };
-
-                audio.play();
+                addMessageToLog("user", data.user_text);
+                handleAIResponse(data.ai_text, data.audio);
 
             } catch (error) {
-                console.error("Error:", error);
-                document.getElementById('statusText').innerText = "Холболтын алдаа";
-                log("Сүлжээ/Серверийн алдаа: " + error.message);
+                console.error(error);
+                statusText.innerText = "Connection Error";
+                talkBtn.disabled = false;
+                visualizer.className = "visualizer-container";
             }
         }
+
+        function handleAIResponse(text, audioBase64) {
+            addMessageToLog("ai", text);
+
+            statusText.innerText = "MindSync AI is speaking...";
+            visualizer.className = "visualizer-container speaking";
+
+            const audio = new Audio("data:audio/mp3;base64," + audioBase64);
+
+            audio.onended = () => {
+                statusText.innerText = "Ready";
+                visualizer.className = "visualizer-container";
+                talkBtn.disabled = false;
+            };
+
+            audio.play();
+        }
+
+        function addMessageToLog(role, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}`;
+
+            const roleSpan = document.createElement('span');
+            roleSpan.className = 'message-role';
+            roleSpan.innerText = role === 'user' ? 'You' : 'MindSync AI';
+
+            msgDiv.appendChild(roleSpan);
+            msgDiv.appendChild(document.createTextNode(text));
+
+            chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
     </script>
 </body>
 
