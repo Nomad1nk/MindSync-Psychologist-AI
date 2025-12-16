@@ -115,7 +115,8 @@ async def read_users_me(current_user: models.User = Depends(auth.get_current_use
 # --- Subscription Endpoints ---
 
 @app.post("/create-checkout-session")
-async def create_checkout_session(current_user: models.User = Depends(auth.get_current_active_user)):
+async def create_checkout_session(request: Request, current_user: models.User = Depends(auth.get_current_active_user)):
+    base_url = str(request.base_url).rstrip("/")
     try:
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
@@ -136,8 +137,8 @@ async def create_checkout_session(current_user: models.User = Depends(auth.get_c
                 },
             ],
             mode='subscription',
-            success_url='http://localhost:8000/?success=true&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url='http://localhost:8000/?canceled=true',
+            success_url=f'{base_url}/?success=true&session_id={{CHECKOUT_SESSION_ID}}',
+            cancel_url=f'{base_url}/?canceled=true',
             metadata={'user_id': current_user.id}
         )
         return {"url": checkout_session.url}
