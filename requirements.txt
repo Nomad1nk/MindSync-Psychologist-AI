@@ -3,3 +3,8 @@ python-dotenv
 fastapi
 uvicorn
 python-multipart
+sqlalchemy
+passlib
+bcrypt==3.2.2
+python-jose[cryptography]
+stripe

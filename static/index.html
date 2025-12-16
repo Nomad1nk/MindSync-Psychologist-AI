@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindSync AI Psychologist</title>
+    <title>MindSync AI - 心理カウンセラー</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,700;1,300&family=Inter:wght@300;400;500&display=swap"
         rel="stylesheet">
@@ -16,12 +16,13 @@
             --secondary-text: #a0a0a0;
             --bubble-user: #2d2d2d;
             --bubble-ai: #2a2518;
+            --error-color: #ff4444;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -33,12 +34,133 @@
             overflow: hidden;
         }
 
+        /* --- Auth & Account Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: #222;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid #333;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #888;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .modal-box h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+            font-family: 'Merriweather', serif;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .primary-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .secondary-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid #555;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .auth-switch {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #888;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Header & User Info --- */
         .header-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-top: 10px;
             flex-shrink: 0;
+            position: relative;
+            width: 100%;
+        }
+
+        .user-menu-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .user-menu-btn:hover {
+            background: rgba(218, 165, 32, 0.1);
         }
 
         h1 {
@@ -156,6 +278,42 @@
             box-sizing: border-box;
             margin: 10px 0;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Paywall Overlay */
+        .paywall-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .paywall-overlay h3 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .subscribe-btn {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
         }
 
         .chat-scroll {
@@ -330,14 +488,65 @@
             height: 20px;
             margin-bottom: 10px;
         }
+
+        .account-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .account-label {
+            color: #888;
+        }
+
+        .account-value {
+            color: #fff;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
 
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <h2 id="authTitle">ログイン</h2>
+            <input type="email" id="authEmail" class="auth-input" placeholder="メールアドレス">
+            <input type="password" id="authPassword" class="auth-input" placeholder="パスワード">
+            <button class="primary-btn" id="authSubmitBtn">ログイン</button>
+            <div class="auth-switch" id="authSwitchBtn">アカウントをお持ちでない方は登録</div>
+            <div id="authError" style="color: red; margin-top: 10px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div class="modal-overlay hidden" id="accountModal">
+        <div class="modal-box">
+            <span class="modal-close" id="accountCloseBtn">&times;</span>
+            <h2>マイアカウント</h2>
+
+            <div class="account-info-row">
+                <span class="account-label">メール:</span>
+                <span class="account-value" id="accountEmail"></span>
+            </div>
+            <div class="account-info-row">
+                <span class="account-label">プラン:</span>
+                <span class="account-value" id="accountPlan"></span>
+            </div>
+
+            <button class="primary-btn hidden" id="accountSubscribeBtn">プレミアムに登録 (月額$9.99)</button>
+            <button class="secondary-btn" id="logoutBtn">ログアウト</button>
+        </div>
+    </div>
+
     <div class="header-container">
+        <button class="user-menu-btn hidden" id="myAccountBtn">マイアカウント</button>
         <h1>MindSync AI</h1>
-        <div class="subtitle">Experienced Psychologist AI</div>
+        <div class="subtitle">ベテラン心理カウンセラーAI</div>
 
         <div class="visualizer-container" id="visualizer">
             <div class="visualizer-ring"></div>
@@ -349,13 +558,20 @@
         <div class="chat-scroll" id="chatLog">
             <div class="message ai">
                 <span class="message-role">MindSync AI</span>
-                Hello. I am MindSync AI. I am here to listen. How are you feeling today?
+                こんにちは。MindSync AIです。お話を聞かせてください。今日の気分はいかがですか？
             </div>
+        </div>
+
+        <!-- Paywall Overlay -->
+        <div class="paywall-overlay hidden" id="paywallOverlay">
+            <h3>プレミアム登録が必要です</h3>
+            <p>カウンセリングを続けるには、プレミアムプランへの登録をお願いします。</p>
+            <button class="subscribe-btn" id="overlaySubscribeBtn">月額$9.99で登録</button>
         </div>
     </div>
 
     <div class="controls-container">
-        <div class="status-text" id="statusText">Ready</div>
+        <div class="status-text" id="statusText">準備完了</div>
 
         <button class="push-to-talk-btn" id="talkBtn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -365,11 +581,11 @@
                 <line x1="12" y1="19" x2="12" y2="23"></line>
                 <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
-            Hold to Speak
+            長押しして話す
         </button>
 
         <div class="text-input-container">
-            <input type="text" id="textInput" placeholder="Type your message..." autocomplete="off">
+            <input type="text" id="textInput" placeholder="メッセージを入力..." autocomplete="off">
             <button id="sendBtn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -381,6 +597,7 @@
     </div>
 
     <script>
+        // --- UI Elements ---
         const talkBtn = document.getElementById('talkBtn');
         const statusText = document.getElementById('statusText');
         const visualizer = document.getElementById('visualizer');
@@ -388,32 +605,277 @@
         const textInput = document.getElementById('textInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        // Auth Modal
+        const authModal = document.getElementById('authModal');
+        const authTitle = document.getElementById('authTitle');
+        const authEmail = document.getElementById('authEmail');
+        const authPassword = document.getElementById('authPassword');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const authSwitchBtn = document.getElementById('authSwitchBtn');
+        const authError = document.getElementById('authError');
+
+        // Account Modal
+        const accountModal = document.getElementById('accountModal');
+        const accountCloseBtn = document.getElementById('accountCloseBtn');
+        const accountEmail = document.getElementById('accountEmail');
+        const accountPlan = document.getElementById('accountPlan');
+        const accountSubscribeBtn = document.getElementById('accountSubscribeBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Header
+        const myAccountBtn = document.getElementById('myAccountBtn');
+
+        // Paywall
+        const paywallOverlay = document.getElementById('paywallOverlay');
+        const overlaySubscribeBtn = document.getElementById('overlaySubscribeBtn');
+
+        // --- State ---
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
+        let isLoginMode = true;
+        let token = localStorage.getItem('access_token');
+        let currentUser = null;
 
+        // --- Init ---
         window.addEventListener('load', async () => {
-            try {
-                await fetch('/reset');
-            } catch (e) {
-                console.error("Failed to reset session", e);
+            // Check for Stripe success/cancel params
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+
+            if (urlParams.get('success') && sessionId && token) {
+                try {
+                    const res = await fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        alert("登録ありがとうございます！プレミアムプランが有効になりました。");
+                    } else {
+                        alert("支払いの確認ができませんでした。");
+                    }
+                } catch (e) {
+                    console.error("Verification error", e);
+                }
+                window.history.replaceState({}, document.title, "/");
+            } else if (urlParams.get('canceled')) {
+                alert("登録がキャンセルされました。");
+                window.history.replaceState({}, document.title, "/");
+            }
+
+            if (token) {
+                await checkUserStatus();
+            } else {
+                showAuth();
             }
         });
 
-        talkBtn.addEventListener('mousedown', startRecording);
-        talkBtn.addEventListener('mouseup', stopRecording);
-        talkBtn.addEventListener('mouseleave', () => {
-            if (isRecording) stopRecording();
+        // --- Auth Logic ---
+        function showAuth() {
+            authModal.classList.remove('hidden');
+        }
+
+        function hideAuth() {
+            authModal.classList.add('hidden');
+        }
+
+        authSwitchBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.innerText = isLoginMode ? "ログイン" : "新規登録";
+            authSubmitBtn.innerText = isLoginMode ? "ログイン" : "登録";
+            authSwitchBtn.innerText = isLoginMode ? "アカウントをお持ちでない方は登録" : "すでにアカウントをお持ちの方はログイン";
+            authError.innerText = "";
         });
 
-        talkBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        authSubmitBtn.addEventListener('click', async () => {
+            const email = authEmail.value;
+            const password = authPassword.value;
+            authError.innerText = "";
+
+            if (!email || !password) {
+                authError.innerText = "全ての項目を入力してください。";
+                return;
+            }
+
+            try {
+                if (isLoginMode) {
+                    // Login
+                    const formData = new URLSearchParams();
+                    formData.append('username', email);
+                    formData.append('password', password);
+
+                    const res = await fetch('/token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    });
+
+                    if (!res.ok) throw new Error("ログインに失敗しました");
+                    const data = await res.json();
+                    token = data.access_token;
+                    localStorage.setItem('access_token', token);
+                    await checkUserStatus();
+
+                } else {
+                    // Register
+                    const res = await fetch('/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.detail || "登録に失敗しました");
+                    }
+
+                    // Registration Successful
+                    alert("登録が完了しました！ログインしてください。");
+                    isLoginMode = true;
+                    authTitle.innerText = "ログイン";
+                    authSubmitBtn.innerText = "ログイン";
+                    authSwitchBtn.innerText = "アカウントをお持ちでない方は登録";
+                    return;
+                }
+            } catch (err) {
+                authError.innerText = err.message;
+            }
+        });
+
+        // --- Account Modal Logic ---
+        myAccountBtn.addEventListener('click', () => {
+            if (!currentUser) return;
+            accountEmail.innerText = currentUser.email;
+            accountPlan.innerText = currentUser.is_subscribed ? "プレミアム (Premium)" : "無料 (Free)";
+
+            if (currentUser.is_subscribed) {
+                accountSubscribeBtn.classList.add('hidden');
+            } else {
+                accountSubscribeBtn.classList.remove('hidden');
+            }
+
+            accountModal.classList.remove('hidden');
+        });
+
+        accountCloseBtn.addEventListener('click', () => {
+            accountModal.classList.add('hidden');
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('access_token');
+            token = null;
+            location.reload();
+        });
+
+        async function checkUserStatus() {
+            try {
+                const res = await fetch('/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    throw new Error("Invalid token");
+                }
+
+                currentUser = await res.json();
+                hideAuth();
+                myAccountBtn.classList.remove('hidden');
+
+                if (!currentUser.is_subscribed) {
+                    paywallOverlay.classList.remove('hidden');
+                    talkBtn.disabled = true;
+                    sendBtn.disabled = true;
+                    textInput.disabled = true;
+                } else {
+                    paywallOverlay.classList.add('hidden');
+                    talkBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    textInput.disabled = false;
+                    await loadChatHistory();
+                }
+
+            } catch (err) {
+                console.error(err);
+                localStorage.removeItem('access_token');
+                token = null;
+                showAuth();
+            }
+        }
+
+        async function loadChatHistory() {
+            try {
+                const res = await fetch('/chat/history', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                const messages = await res.json();
+
+                if (messages.length > 0) {
+                    chatLog.innerHTML = '';
+                }
+
+                messages.forEach(msg => {
+                    addMessageToLog(msg.role === 'ai' ? 'ai' : 'user', msg.content);
+                });
+            } catch (err) {
+                console.error("Failed to load history", err);
+            }
+        }
+
+        // Shared Subscribe Function
+        async function startSubscription() {
+            try {
+                const res = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.detail || "チェックアウトの開始に失敗しました");
+                }
+
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert("エラー: URLが取得できませんでした");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("エラー: " + err.message);
+            }
+        }
+
+        overlaySubscribeBtn.addEventListener('click', startSubscription);
+        accountSubscribeBtn.addEventListener('click', startSubscription);
+
+
+        // --- Recording Logic ---
+        let isHeld = false;
+
+        function handleStart(e) {
+            if (e.type === 'touchstart') e.preventDefault();
+            isHeld = true;
             startRecording();
-        });
-        talkBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        }
+
+        function handleStop(e) {
+            if (e.type === 'touchend') e.preventDefault();
+            isHeld = false;
             stopRecording();
-        });
+        }
+
+        talkBtn.addEventListener('mousedown', handleStart);
+        talkBtn.addEventListener('mouseup', handleStop);
+        talkBtn.addEventListener('mouseleave', handleStop);
+        talkBtn.addEventListener('touchstart', handleStart);
+        talkBtn.addEventListener('touchend', handleStop);
 
         sendBtn.addEventListener('click', sendText);
         textInput.addEventListener('keypress', (e) => {
@@ -426,6 +888,12 @@
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                if (!isHeld) {
+                    stream.getTracks().forEach(track => track.stop());
+                    return;
+                }
+
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
@@ -437,13 +905,13 @@
                 isRecording = true;
 
                 talkBtn.classList.add('active');
-                talkBtn.innerHTML = "Listening...";
-                statusText.innerText = "Recording...";
+                talkBtn.innerHTML = "聞き取り中...";
+                statusText.innerText = "録音中...";
                 visualizer.className = "visualizer-container listening";
 
             } catch (err) {
                 console.error("Mic Error:", err);
-                statusText.innerText = "Microphone access denied.";
+                statusText.innerText = "マイクへのアクセスが拒否されました。";
             }
         }
 
@@ -461,9 +929,9 @@
                     <line x1="12" y1="19" x2="12" y2="23"></line>
                     <line x1="8" y1="23" x2="16" y2="23"></line>
                 </svg>
-                Hold to Speak
+                長押しして話す
             `;
-            statusText.innerText = "Processing...";
+            statusText.innerText = "処理中...";
             visualizer.className = "visualizer-container thinking";
             talkBtn.disabled = true;
 
@@ -481,7 +949,7 @@
 
             addMessageToLog("user", text);
             textInput.value = "";
-            statusText.innerText = "Thinking...";
+            statusText.innerText = "思考中...";
             visualizer.className = "visualizer-container thinking";
             textInput.disabled = true;
             sendBtn.disabled = true;
@@ -489,22 +957,31 @@
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ message: text })
                 });
+
+                if (response.status === 403) {
+                    alert("プレミアム登録が必要です。");
+                    checkUserStatus(); // Re-check to show paywall
+                    return;
+                }
 
                 if (!response.ok) throw new Error("Server Error");
                 const data = await response.json();
 
                 if (data.error) {
-                    statusText.innerText = "Error: " + data.error;
+                    statusText.innerText = "エラー: " + data.error;
                 } else {
                     handleAIResponse(data.response, data.audio);
                 }
 
             } catch (error) {
                 console.error(error);
-                statusText.innerText = "Connection Error";
+                statusText.innerText = "接続エラー";
             } finally {
                 textInput.disabled = false;
                 sendBtn.disabled = false;
@@ -519,15 +996,22 @@
             try {
                 const response = await fetch('/talk', {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
+
+                if (response.status === 403) {
+                    alert("プレミアム登録が必要です。");
+                    checkUserStatus();
+                    return;
+                }
 
                 if (!response.ok) throw new Error("Server Error");
 
                 const data = await response.json();
 
                 if (data.error) {
-                    statusText.innerText = "Error: " + data.error;
+                    statusText.innerText = "エラー: " + data.error;
                     talkBtn.disabled = false;
                     visualizer.className = "visualizer-container";
                     return;
@@ -538,7 +1022,7 @@
 
             } catch (error) {
                 console.error(error);
-                statusText.innerText = "Connection Error";
+                statusText.innerText = "接続エラー";
                 talkBtn.disabled = false;
                 visualizer.className = "visualizer-container";
             }
@@ -547,13 +1031,13 @@
         function handleAIResponse(text, audioBase64) {
             addMessageToLog("ai", text);
 
-            statusText.innerText = "MindSync AI is speaking...";
+            statusText.innerText = "MindSync AIが話しています...";
             visualizer.className = "visualizer-container speaking";
 
             const audio = new Audio("data:audio/mp3;base64," + audioBase64);
 
             audio.onended = () => {
-                statusText.innerText = "Ready";
+                statusText.innerText = "準備完了";
                 visualizer.className = "visualizer-container";
                 talkBtn.disabled = false;
             };
@@ -567,7 +1051,7 @@
 
             const roleSpan = document.createElement('span');
             roleSpan.className = 'message-role';
-            roleSpan.innerText = role === 'user' ? 'You' : 'MindSync AI';
+            roleSpan.innerText = role === 'user' ? 'あなた' : 'MindSync AI';
 
             msgDiv.appendChild(roleSpan);
             msgDiv.appendChild(document.createTextNode(text));
