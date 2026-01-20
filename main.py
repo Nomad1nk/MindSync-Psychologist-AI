@@ -346,6 +346,16 @@ async def reset(db: Session = Depends(database.get_db), current_user: models.Use
     db.commit()
     return {"status": "reset"}
 
+@app.get("/db-migrate")
+def db_migrate(db: Session = Depends(database.get_db)):
+    try:
+        from sqlalchemy import text
+        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR;"))
+        db.commit()
+        return {"message": "Migration successful: Added profile_picture column"}
+    except Exception as e:
+        return {"error": str(e)}
+
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
