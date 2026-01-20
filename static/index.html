@@ -572,6 +572,15 @@
         </div>
     </div>
 
+    <!-- Guest Limit Modal -->
+    <div class="modal-overlay hidden" id="guestLimitModal">
+        <div class="modal-box">
+            <h2 style="color: var(--accent-color);">無料枠が終了しました</h2>
+            <p style="margin: 20px 0; line-height: 1.6;">ゲストモードの利用上限（3回）に達しました。<br>続けて利用するには、アカウント登録をお願いします。</p>
+            <button class="primary-btn" id="guestRegisterBtn">アカウント登録へ進む</button>
+        </div>
+    </div>
+
     <!-- Account Modal -->
     <div class="modal-overlay hidden" id="accountModal">
         <div class="modal-box">
@@ -698,6 +707,10 @@
         const guestBtn = document.getElementById('guestBtn');
         const authSwitchBtn = document.getElementById('authSwitchBtn');
         const authError = document.getElementById('authError');
+
+        // Guest Limit Modal
+        const guestLimitModal = document.getElementById('guestLimitModal');
+        const guestRegisterBtn = document.getElementById('guestRegisterBtn');
 
         // Account Modal
         const accountModal = document.getElementById('accountModal');
@@ -855,6 +868,12 @@
             } catch (err) {
                 authError.innerText = err.message;
             }
+        });
+
+        guestRegisterBtn.addEventListener('click', () => {
+            guestLimitModal.classList.add('hidden');
+            localStorage.removeItem('access_token');
+            location.reload(); // Reload to show Auth Modal
         });
 
         // --- Account Modal Logic ---
@@ -1222,9 +1241,7 @@
                 if (response.status === 403) {
                     const errData = await response.json();
                     if (errData.is_guest_limit) {
-                        alert("ゲスト利用の上限に達しました。続きを利用するには登録してください。");
-                        localStorage.removeItem('access_token');
-                        location.reload();
+                        guestLimitModal.classList.remove('hidden');
                         return;
                     }
                     alert("プレミアム登録が必要です。");
@@ -1265,9 +1282,7 @@
                 if (response.status === 403) {
                     const errData = await response.json();
                     if (errData.is_guest_limit) {
-                        alert("ゲスト利用の上限に達しました。続きを利用するには登録してください。");
-                        localStorage.removeItem('access_token');
-                        location.reload();
+                        guestLimitModal.classList.remove('hidden');
                         return;
                     }
                     alert("プレミアム登録が必要です。");
