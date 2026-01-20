@@ -91,7 +91,7 @@
         .primary-btn {
             width: 100%;
             padding: 12px;
-            margin-top: 20px;
+            margin-top: 10px;
             background: var(--accent-color);
             color: #000;
             border: none;
@@ -602,7 +602,12 @@
                     <span class="account-value" id="accountPlan"></span>
                 </div>
 
-                <button class="primary-btn hidden" id="accountSubscribeBtn">プレミアムに登録 (月額$9.99)</button>
+                <div id="subscriptionOptions" class="hidden">
+                    <button class="primary-btn" onclick="startSubscription('monthly')">月額プラン ($9.99/月)</button>
+                    <button class="primary-btn" onclick="startSubscription('yearly')"
+                        style="background: #FFD700; color: #000;">年額プラン ($99.99/年) - お得！</button>
+                </div>
+
                 <button class="secondary-btn hidden" id="accountManageBtn">サブスクリプション管理</button>
                 <button class="secondary-btn" id="logoutBtn">ログアウト</button>
             </div>
@@ -639,7 +644,11 @@
         <div class="paywall-overlay hidden" id="paywallOverlay">
             <h3>プレミアム登録が必要です</h3>
             <p>カウンセリングを続けるには、プレミアムプランへの登録をお願いします。</p>
-            <button class="subscribe-btn" id="overlaySubscribeBtn">月額$9.99で登録</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center;">
+                <button class="subscribe-btn" onclick="startSubscription('monthly')">月額 $9.99</button>
+                <button class="subscribe-btn" onclick="startSubscription('yearly')"
+                    style="background: #FFD700; color: #000;">年額 $99.99 (お得)</button>
+            </div>
         </div>
     </div>
 
@@ -695,7 +704,7 @@
         const accountAvatar = document.getElementById('accountAvatar');
         const avatarOverlay = document.getElementById('avatarOverlay');
         const avatarInput = document.getElementById('avatarInput');
-        const accountSubscribeBtn = document.getElementById('accountSubscribeBtn');
+        const subscriptionOptions = document.getElementById('subscriptionOptions');
         const accountManageBtn = document.getElementById('accountManageBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
@@ -712,7 +721,6 @@
 
         // Paywall
         const paywallOverlay = document.getElementById('paywallOverlay');
-        const overlaySubscribeBtn = document.getElementById('overlaySubscribeBtn');
 
         // --- State ---
         let mediaRecorder;
@@ -848,10 +856,10 @@
             }
 
             if (currentUser.is_subscribed) {
-                accountSubscribeBtn.classList.add('hidden');
+                subscriptionOptions.classList.add('hidden');
                 accountManageBtn.classList.remove('hidden');
             } else {
-                accountSubscribeBtn.classList.remove('hidden');
+                subscriptionOptions.classList.remove('hidden');
                 accountManageBtn.classList.add('hidden');
             }
 
@@ -1029,11 +1037,15 @@
         }
 
         // Shared Subscribe Function
-        async function startSubscription() {
+        async function startSubscription(planType) {
             try {
                 const res = await fetch('/create-checkout-session', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ plan_type: planType })
                 });
 
                 if (!res.ok) {
@@ -1052,9 +1064,6 @@
                 alert("エラー: " + err.message);
             }
         }
-
-        overlaySubscribeBtn.addEventListener('click', startSubscription);
-        accountSubscribeBtn.addEventListener('click', startSubscription);
 
         accountManageBtn.addEventListener('click', async () => {
             try {

@@ -119,20 +119,31 @@ async def read_users_me(current_user: models.User = Depends(auth.get_current_use
 @app.post("/create-checkout-session")
 async def create_checkout_session(request: Request, current_user: models.User = Depends(auth.get_current_active_user)):
     base_url = str(request.base_url).rstrip("/")
+    data = await request.json()
+    plan_type = data.get('plan_type', 'monthly') # Default to monthly
+
+    if plan_type == 'yearly':
+        unit_amount = 9999 # $99.99
+        interval = 'year'
+        product_name = 'MindSync AI Premium (Yearly)'
+    else:
+        unit_amount = 999 # $9.99
+        interval = 'month'
+        product_name = 'MindSync AI Premium (Monthly)'
+
     try:
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
             line_items=[
                 {
-                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                     'price_data': {
                         'currency': 'usd',
                         'product_data': {
-                            'name': 'MindSync AI Premium',
+                            'name': product_name,
                         },
-                        'unit_amount': 999, # $9.99
+                        'unit_amount': unit_amount,
                         'recurring': {
-                            'interval': 'month',
+                            'interval': interval,
                         },
                     },
                     'quantity': 1,
