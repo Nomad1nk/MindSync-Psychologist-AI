@@ -619,6 +619,12 @@
                         style="background: #FFD700; color: #000;">年額プラン ($99.99/年) - お得！</button>
                 </div>
 
+                <div id="guestUpgradeSection" class="hidden">
+                    <p style="margin: 15px 0; color: #DAA520;">ゲストモード利用中</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px;">サブスクリプションプランを利用するには、アカウント登録が必要です。</p>
+                    <button class="primary-btn" id="guestToRegisterBtn">アカウント登録してプランを選択</button>
+                </div>
+
                 <button class="secondary-btn hidden" id="accountManageBtn">サブスクリプション管理</button>
                 <button class="secondary-btn" id="logoutBtn">ログアウト</button>
             </div>
@@ -721,6 +727,8 @@
         const avatarOverlay = document.getElementById('avatarOverlay');
         const avatarInput = document.getElementById('avatarInput');
         const subscriptionOptions = document.getElementById('subscriptionOptions');
+        const guestUpgradeSection = document.getElementById('guestUpgradeSection');
+        const guestToRegisterBtn = document.getElementById('guestToRegisterBtn');
         const accountManageBtn = document.getElementById('accountManageBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
@@ -892,13 +900,30 @@
 
             if (currentUser.is_subscribed) {
                 subscriptionOptions.classList.add('hidden');
+                guestUpgradeSection.classList.add('hidden');
                 accountManageBtn.classList.remove('hidden');
+            } else if (currentUser.email.startsWith("guest_")) {
+                subscriptionOptions.classList.add('hidden');
+                guestUpgradeSection.classList.remove('hidden');
+                accountManageBtn.classList.add('hidden');
             } else {
                 subscriptionOptions.classList.remove('hidden');
+                guestUpgradeSection.classList.add('hidden');
                 accountManageBtn.classList.add('hidden');
             }
 
             accountModal.classList.remove('hidden');
+        });
+
+        guestToRegisterBtn.addEventListener('click', () => {
+            accountModal.classList.add('hidden');
+            localStorage.removeItem('access_token');
+            // Switch to Register mode
+            isLoginMode = false;
+            authTitle.innerText = "新規登録";
+            authSubmitBtn.innerText = "登録";
+            authSwitchBtn.innerText = "すでにアカウントをお持ちの方はログイン";
+            showAuth();
         });
 
         // Avatar Upload Logic
@@ -1030,10 +1055,12 @@
 
                 // Guest UI Adjustments
                 if (currentUser.email.startsWith("guest_")) {
-                    myAccountBtn.classList.add('hidden'); // Hide account for guests
+                    myAccountBtn.classList.remove('hidden'); // Show account for guests now
+                    myAccountBtn.innerText = "ゲスト (登録)";
                     statusText.innerText = "ゲストモード (3回まで)";
                 } else {
                     myAccountBtn.classList.remove('hidden');
+                    myAccountBtn.innerText = "マイアカウント";
                 }
 
                 if (!currentUser.is_subscribed && !currentUser.email.startsWith("guest_")) {
