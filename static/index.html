@@ -192,22 +192,23 @@
             width: 100%;
         }
 
-        .user-menu-btn {
+        .header-avatar {
             position: absolute;
             top: 0;
             right: 0;
-            font-size: 0.9rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
             cursor: pointer;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            padding: 5px 15px;
-            border-radius: 20px;
-            background: transparent;
-            transition: all 0.2s;
+            object-fit: cover;
+            transition: transform 0.2s;
+            background: #333;
         }
 
-        .user-menu-btn:hover {
-            background: rgba(218, 165, 32, 0.1);
+        .header-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.4);
         }
 
         h1 {
@@ -639,7 +640,7 @@
     </div>
 
     <div class="header-container">
-        <button class="user-menu-btn hidden" id="myAccountBtn">マイアカウント</button>
+        <img id="headerAvatar" class="header-avatar hidden" src="" alt="Profile">
         <h1>MindSync AI</h1>
         <div class="subtitle">ベテラン心理カウンセラーAI</div>
 
@@ -741,7 +742,7 @@
         const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
         // Header
-        const myAccountBtn = document.getElementById('myAccountBtn');
+        const headerAvatar = document.getElementById('headerAvatar');
 
         // Paywall
         const paywallOverlay = document.getElementById('paywallOverlay');
@@ -885,12 +886,12 @@
         });
 
         // --- Account Modal Logic ---
-        myAccountBtn.addEventListener('click', () => {
+        headerAvatar.addEventListener('click', () => {
             if (!currentUser) return;
             accountEmail.innerText = currentUser.email;
             accountPlan.innerText = currentUser.is_subscribed ? "プレミアム (Premium)" : "無料 (Free)";
 
-            // Set Avatar
+            // Set Avatar in Modal
             if (currentUser.profile_picture) {
                 accountAvatar.src = currentUser.profile_picture;
             } else {
@@ -957,6 +958,9 @@
                 const data = await res.json();
                 accountAvatar.src = data.profile_picture;
                 currentUser.profile_picture = data.profile_picture; // Update local state
+
+                // Update Header Avatar immediately
+                headerAvatar.src = data.profile_picture;
 
             } catch (err) {
                 console.error(err);
@@ -1053,14 +1057,18 @@
                 currentUser = await res.json();
                 hideAuth();
 
+                // Set Header Avatar
+                if (currentUser.profile_picture) {
+                    headerAvatar.src = currentUser.profile_picture;
+                } else {
+                    const seed = encodeURIComponent(currentUser.email);
+                    headerAvatar.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+                }
+                headerAvatar.classList.remove('hidden');
+
                 // Guest UI Adjustments
                 if (currentUser.email.startsWith("guest_")) {
-                    myAccountBtn.classList.remove('hidden'); // Show account for guests now
-                    myAccountBtn.innerText = "ゲスト (登録)";
                     statusText.innerText = "ゲストモード (3回まで)";
-                } else {
-                    myAccountBtn.classList.remove('hidden');
-                    myAccountBtn.innerText = "マイアカウント";
                 }
 
                 if (!currentUser.is_subscribed && !currentUser.email.startsWith("guest_")) {
