@@ -12,6 +12,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_subscribed = Column(Boolean, default=False)
     stripe_customer_id = Column(String, nullable=True)
+    profile_picture = Column(String, nullable=True)
 
     messages = relationship("Message", back_populates="owner")
 

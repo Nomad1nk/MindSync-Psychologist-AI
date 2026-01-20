@@ -583,9 +583,15 @@
 
             <!-- Profile Tab -->
             <div class="tab-content active" id="tabProfile">
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 20px; position: relative; display: inline-block;">
                     <img id="accountAvatar" src="" alt="Avatar"
-                        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #DAA520;">
+                        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #DAA520; cursor: pointer; object-fit: cover;"
+                        title="Click to change photo">
+                    <div id="avatarOverlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; cursor: pointer;">
+                        <span style="font-size: 20px; color: white;">📷</span>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
                 </div>
                 <div class="account-info-row">
                     <span class="account-label">メール:</span>
@@ -687,6 +693,8 @@
         const accountEmail = document.getElementById('accountEmail');
         const accountPlan = document.getElementById('accountPlan');
         const accountAvatar = document.getElementById('accountAvatar');
+        const avatarOverlay = document.getElementById('avatarOverlay');
+        const avatarInput = document.getElementById('avatarInput');
         const accountSubscribeBtn = document.getElementById('accountSubscribeBtn');
         const accountManageBtn = document.getElementById('accountManageBtn');
         const logoutBtn = document.getElementById('logoutBtn');
@@ -832,8 +840,12 @@
             accountPlan.innerText = currentUser.is_subscribed ? "プレミアム (Premium)" : "無料 (Free)";
 
             // Set Avatar
-            const seed = encodeURIComponent(currentUser.email);
-            accountAvatar.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+            if (currentUser.profile_picture) {
+                accountAvatar.src = currentUser.profile_picture;
+            } else {
+                const seed = encodeURIComponent(currentUser.email);
+                accountAvatar.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+            }
 
             if (currentUser.is_subscribed) {
                 accountSubscribeBtn.classList.add('hidden');
@@ -844,6 +856,46 @@
             }
 
             accountModal.classList.remove('hidden');
+        });
+
+        // Avatar Upload Logic
+        accountAvatar.addEventListener('mouseenter', () => avatarOverlay.style.opacity = 1);
+        avatarOverlay.addEventListener('mouseenter', () => avatarOverlay.style.opacity = 1);
+        accountAvatar.addEventListener('mouseleave', () => avatarOverlay.style.opacity = 0);
+        avatarOverlay.addEventListener('mouseleave', () => avatarOverlay.style.opacity = 0);
+
+        avatarOverlay.addEventListener('click', () => avatarInput.click());
+        accountAvatar.addEventListener('click', () => avatarInput.click());
+
+        avatarInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Show loading state (optional)
+                accountAvatar.style.opacity = 0.5;
+
+                const res = await fetch('/users/me/avatar', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Upload failed");
+
+                const data = await res.json();
+                accountAvatar.src = data.profile_picture;
+                currentUser.profile_picture = data.profile_picture; // Update local state
+
+            } catch (err) {
+                console.error(err);
+                alert("画像のアップロードに失敗しました。");
+            } finally {
+                accountAvatar.style.opacity = 1;
+            }
         });
 
         accountCloseBtn.addEventListener('click', () => {

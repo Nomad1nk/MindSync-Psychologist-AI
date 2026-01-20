@@ -11,6 +11,8 @@ from openai import OpenAI
 from datetime import datetime
 from sqlalchemy.orm import Session
 import stripe
+import io
+from PIL import Image
 
 import models
 import database
@@ -161,6 +163,30 @@ async def create_portal_session(request: Request, current_user: models.User = De
     except Exception as e:
         print(f"Stripe Portal Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/users/me/avatar")
+async def upload_avatar(file: UploadFile = File(...), db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
+    try:
+        # Read image
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        
+        # Resize if too large (max 300x300)
+        image.thumbnail((300, 300))
+        
+        # Convert to Base64
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+        # Save to DB
+        current_user.profile_picture = f"data:image/png;base64,{img_str}"
+        db.commit()
+        
+        return {"profile_picture": current_user.profile_picture}
+    except Exception as e:
+        print(f"Avatar Upload Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload image")
 
 @app.post("/verify-payment")
 async def verify_payment(request: Request, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
