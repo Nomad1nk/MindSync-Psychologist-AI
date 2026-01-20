@@ -583,6 +583,10 @@
 
             <!-- Profile Tab -->
             <div class="tab-content active" id="tabProfile">
+                <div style="margin-bottom: 20px;">
+                    <img id="accountAvatar" src="" alt="Avatar"
+                        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #DAA520;">
+                </div>
                 <div class="account-info-row">
                     <span class="account-label">メール:</span>
                     <span class="account-value" id="accountEmail"></span>
@@ -593,6 +597,7 @@
                 </div>
 
                 <button class="primary-btn hidden" id="accountSubscribeBtn">プレミアムに登録 (月額$9.99)</button>
+                <button class="secondary-btn hidden" id="accountManageBtn">サブスクリプション管理</button>
                 <button class="secondary-btn" id="logoutBtn">ログアウト</button>
             </div>
 
@@ -681,7 +686,9 @@
         const accountCloseBtn = document.getElementById('accountCloseBtn');
         const accountEmail = document.getElementById('accountEmail');
         const accountPlan = document.getElementById('accountPlan');
+        const accountAvatar = document.getElementById('accountAvatar');
         const accountSubscribeBtn = document.getElementById('accountSubscribeBtn');
+        const accountManageBtn = document.getElementById('accountManageBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
         // Tabs
@@ -824,10 +831,16 @@
             accountEmail.innerText = currentUser.email;
             accountPlan.innerText = currentUser.is_subscribed ? "プレミアム (Premium)" : "無料 (Free)";
 
+            // Set Avatar
+            const seed = encodeURIComponent(currentUser.email);
+            accountAvatar.src = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
+
             if (currentUser.is_subscribed) {
                 accountSubscribeBtn.classList.add('hidden');
+                accountManageBtn.classList.remove('hidden');
             } else {
                 accountSubscribeBtn.classList.remove('hidden');
+                accountManageBtn.classList.add('hidden');
             }
 
             accountModal.classList.remove('hidden');
@@ -990,6 +1003,26 @@
 
         overlaySubscribeBtn.addEventListener('click', startSubscription);
         accountSubscribeBtn.addEventListener('click', startSubscription);
+
+        accountManageBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/create-portal-session', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "ポータルの作成に失敗しました");
+                }
+
+                const data = await res.json();
+                window.location.href = data.url;
+            } catch (err) {
+                console.error(err);
+                alert("エラー: " + err.message);
+            }
+        });
 
 
         // --- Recording Logic ---

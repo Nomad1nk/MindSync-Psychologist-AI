@@ -146,6 +146,22 @@ async def create_checkout_session(request: Request, current_user: models.User = 
         print(f"Stripe Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/create-portal-session")
+async def create_portal_session(request: Request, current_user: models.User = Depends(auth.get_current_active_user)):
+    if not current_user.stripe_customer_id:
+        raise HTTPException(status_code=400, detail="No billing information found")
+
+    base_url = str(request.base_url).rstrip("/")
+    try:
+        portal_session = stripe.billing_portal.Session.create(
+            customer=current_user.stripe_customer_id,
+            return_url=base_url,
+        )
+        return {"url": portal_session.url}
+    except Exception as e:
+        print(f"Stripe Portal Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/verify-payment")
 async def verify_payment(request: Request, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_active_user)):
     data = await request.json()
