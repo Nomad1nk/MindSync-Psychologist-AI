@@ -122,6 +122,22 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .danger-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .danger-btn:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
         .auth-switch {
             margin-top: 15px;
             font-size: 0.9rem;
@@ -132,6 +148,37 @@
 
         .hidden {
             display: none !important;
+        }
+
+        /* --- Tabs --- */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         /* --- Header & User Info --- */
@@ -529,17 +576,32 @@
             <span class="modal-close" id="accountCloseBtn">&times;</span>
             <h2>マイアカウント</h2>
 
-            <div class="account-info-row">
-                <span class="account-label">メール:</span>
-                <span class="account-value" id="accountEmail"></span>
-            </div>
-            <div class="account-info-row">
-                <span class="account-label">プラン:</span>
-                <span class="account-value" id="accountPlan"></span>
+            <div class="tab-container">
+                <button class="tab-btn active" id="tabBtnProfile">プロフィール</button>
+                <button class="tab-btn" id="tabBtnSettings">設定</button>
             </div>
 
-            <button class="primary-btn hidden" id="accountSubscribeBtn">プレミアムに登録 (月額$9.99)</button>
-            <button class="secondary-btn" id="logoutBtn">ログアウト</button>
+            <!-- Profile Tab -->
+            <div class="tab-content active" id="tabProfile">
+                <div class="account-info-row">
+                    <span class="account-label">メール:</span>
+                    <span class="account-value" id="accountEmail"></span>
+                </div>
+                <div class="account-info-row">
+                    <span class="account-label">プラン:</span>
+                    <span class="account-value" id="accountPlan"></span>
+                </div>
+
+                <button class="primary-btn hidden" id="accountSubscribeBtn">プレミアムに登録 (月額$9.99)</button>
+                <button class="secondary-btn" id="logoutBtn">ログアウト</button>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="tabSettings">
+                <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px;">チャット履歴の管理</p>
+                <button class="secondary-btn" id="downloadHistoryBtn">履歴をダウンロード (.txt)</button>
+                <button class="danger-btn" id="clearHistoryBtn">履歴を削除する</button>
+            </div>
         </div>
     </div>
 
@@ -622,6 +684,14 @@
         const accountSubscribeBtn = document.getElementById('accountSubscribeBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
+        // Tabs
+        const tabBtnProfile = document.getElementById('tabBtnProfile');
+        const tabBtnSettings = document.getElementById('tabBtnSettings');
+        const tabProfile = document.getElementById('tabProfile');
+        const tabSettings = document.getElementById('tabSettings');
+        const downloadHistoryBtn = document.getElementById('downloadHistoryBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
         // Header
         const myAccountBtn = document.getElementById('myAccountBtn');
 
@@ -636,6 +706,7 @@
         let isLoginMode = true;
         let token = localStorage.getItem('access_token');
         let currentUser = null;
+        let chatHistory = []; // Store history for download
 
         // --- Init ---
         window.addEventListener('load', async () => {
@@ -772,6 +843,70 @@
             location.reload();
         });
 
+        // --- Tabs Logic ---
+        tabBtnProfile.addEventListener('click', () => {
+            tabBtnProfile.classList.add('active');
+            tabBtnSettings.classList.remove('active');
+            tabProfile.classList.add('active');
+            tabSettings.classList.remove('active');
+        });
+
+        tabBtnSettings.addEventListener('click', () => {
+            tabBtnSettings.classList.add('active');
+            tabBtnProfile.classList.remove('active');
+            tabSettings.classList.add('active');
+            tabProfile.classList.remove('active');
+        });
+
+        // --- History Management ---
+        downloadHistoryBtn.addEventListener('click', () => {
+            if (!chatHistory || chatHistory.length === 0) {
+                alert("ダウンロードする履歴がありません。");
+                return;
+            }
+
+            let textContent = "MindSync AI Chat History\n========================\n\n";
+            chatHistory.forEach(msg => {
+                const role = msg.role === 'ai' ? 'MindSync AI' : 'User';
+                const time = new Date(msg.timestamp).toLocaleString();
+                textContent += `[${time}] ${role}:\n${msg.content}\n\n`;
+            });
+
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mindsync_history.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        clearHistoryBtn.addEventListener('click', async () => {
+            if (!confirm("本当に履歴を削除しますか？この操作は取り消せません。")) return;
+
+            try {
+                const res = await fetch('/reset', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    alert("履歴を削除しました。");
+                    chatLog.innerHTML = '';
+                    chatHistory = [];
+                    // Add default greeting back
+                    addMessageToLog('ai', 'こんにちは。MindSync AIです。お話を聞かせてください。今日の気分はいかがですか？');
+                } else {
+                    alert("削除に失敗しました。");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("エラーが発生しました。");
+            }
+        });
+
+
         async function checkUserStatus() {
             try {
                 const res = await fetch('/users/me', {
@@ -814,6 +949,7 @@
                 });
                 if (!res.ok) return;
                 const messages = await res.json();
+                chatHistory = messages; // Save for download
 
                 if (messages.length > 0) {
                     chatLog.innerHTML = '';
