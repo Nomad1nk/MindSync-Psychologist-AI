@@ -48,6 +48,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None:
+        # Check for Guest
+        if email.startswith("guest_"):
+            # Return a virtual guest user
+            return models.User(id=0, email=email, is_active=True, is_subscribed=True) # Treated as subscribed for access, limited by count
         raise credentials_exception
     return user
 
@@ -57,6 +61,10 @@ async def get_current_active_user(current_user: models.User = Depends(get_curren
     return current_user
 
 async def get_current_subscribed_user(current_user: models.User = Depends(get_current_active_user)):
+    # Guests are allowed here (limit enforced in main.py)
+    if current_user.email.startswith("guest_"):
+        return current_user
+        
     if not current_user.is_subscribed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 

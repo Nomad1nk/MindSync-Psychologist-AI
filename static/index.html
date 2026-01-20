@@ -565,6 +565,8 @@
             <input type="email" id="authEmail" class="auth-input" placeholder="メールアドレス">
             <input type="password" id="authPassword" class="auth-input" placeholder="パスワード">
             <button class="primary-btn" id="authSubmitBtn">ログイン</button>
+            <button class="secondary-btn" id="guestBtn"
+                style="margin-top: 10px; border-color: #DAA520; color: #DAA520;">ゲストとして試す (3回まで)</button>
             <div class="auth-switch" id="authSwitchBtn">アカウントをお持ちでない方は登録</div>
             <div id="authError" style="color: red; margin-top: 10px; font-size: 0.9rem;"></div>
         </div>
@@ -693,6 +695,7 @@
         const authEmail = document.getElementById('authEmail');
         const authPassword = document.getElementById('authPassword');
         const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const guestBtn = document.getElementById('guestBtn');
         const authSwitchBtn = document.getElementById('authSwitchBtn');
         const authError = document.getElementById('authError');
 
@@ -836,6 +839,19 @@
                     authSwitchBtn.innerText = "アカウントをお持ちでない方は登録";
                     return;
                 }
+            } catch (err) {
+                authError.innerText = err.message;
+            }
+        });
+
+        guestBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/guest-token', { method: 'POST' });
+                if (!res.ok) throw new Error("ゲストログインに失敗しました");
+                const data = await res.json();
+                token = data.access_token;
+                localStorage.setItem('access_token', token);
+                await checkUserStatus();
             } catch (err) {
                 authError.innerText = err.message;
             }
@@ -992,9 +1008,16 @@
 
                 currentUser = await res.json();
                 hideAuth();
-                myAccountBtn.classList.remove('hidden');
 
-                if (!currentUser.is_subscribed) {
+                // Guest UI Adjustments
+                if (currentUser.email.startsWith("guest_")) {
+                    myAccountBtn.classList.add('hidden'); // Hide account for guests
+                    statusText.innerText = "ゲストモード (3回まで)";
+                } else {
+                    myAccountBtn.classList.remove('hidden');
+                }
+
+                if (!currentUser.is_subscribed && !currentUser.email.startsWith("guest_")) {
                     paywallOverlay.classList.remove('hidden');
                     talkBtn.disabled = true;
                     sendBtn.disabled = true;
@@ -1004,7 +1027,9 @@
                     talkBtn.disabled = false;
                     sendBtn.disabled = false;
                     textInput.disabled = false;
-                    await loadChatHistory();
+                    if (!currentUser.email.startsWith("guest_")) {
+                        await loadChatHistory();
+                    }
                 }
 
             } catch (err) {
@@ -1195,6 +1220,13 @@
                 });
 
                 if (response.status === 403) {
+                    const errData = await response.json();
+                    if (errData.is_guest_limit) {
+                        alert("ゲスト利用の上限に達しました。続きを利用するには登録してください。");
+                        localStorage.removeItem('access_token');
+                        location.reload();
+                        return;
+                    }
                     alert("プレミアム登録が必要です。");
                     checkUserStatus(); // Re-check to show paywall
                     return;
@@ -1231,6 +1263,13 @@
                 });
 
                 if (response.status === 403) {
+                    const errData = await response.json();
+                    if (errData.is_guest_limit) {
+                        alert("ゲスト利用の上限に達しました。続きを利用するには登録してください。");
+                        localStorage.removeItem('access_token');
+                        location.reload();
+                        return;
+                    }
                     alert("プレミアム登録が必要です。");
                     checkUserStatus();
                     return;

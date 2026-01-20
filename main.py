@@ -20,6 +20,10 @@ import auth
 
 load_dotenv()
 
+# Guest Usage Tracking (In-Memory)
+guest_usage = {}
+GUEST_LIMIT = 3
+
 # Create Database Tables
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -105,6 +109,13 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = auth.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/guest-token")
+async def guest_token():
+    import uuid
+    guest_id = f"guest_{uuid.uuid4()}"
+    access_token = auth.create_access_token(data={"sub": guest_id})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/users/me")
@@ -256,13 +267,28 @@ async def get_history(db: Session = Depends(database.get_db), current_user: mode
 
 @app.post("/chat")
 async def chat(request: ChatRequest, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_subscribed_user)):
+    user_text = request.message
+    
+    # Guest Limit Check
+    if current_user.email.startswith("guest_"):
+        count = guest_usage.get(current_user.email, 0)
+        if count >= GUEST_LIMIT:
+            return JSONResponse(content={"error": "Guest limit reached", "is_guest_limit": True}, status_code=403)
+        guest_usage[current_user.email] = count + 1
+
     # Save User Message
-    user_msg = models.Message(user_id=current_user.id, role="user", content=request.message)
-    db.add(user_msg)
-    db.commit()
+    if not current_user.email.startswith("guest_"):
+        user_msg = models.Message(user_id=current_user.id, role="user", content=user_text)
+        db.add(user_msg)
+        db.commit()
 
     # Build Context
-    context = get_chat_context(current_user.id, db)
+    if current_user.email.startswith("guest_"):
+        context = [{"role": "system", "content": get_dynamic_prompt()}]
+        context.append({"role": "user", "content": user_text})
+    else:
+        context = get_chat_context(current_user.id, db)
+        context.append({"role": "user", "content": user_text}) # Add current message
 
     try:
         completion = client.chat.completions.create(
@@ -272,9 +298,10 @@ async def chat(request: ChatRequest, db: Session = Depends(database.get_db), cur
         ai_response = completion.choices[0].message.content
         
         # Save AI Message
-        ai_msg = models.Message(user_id=current_user.id, role="ai", content=ai_response)
-        db.add(ai_msg)
-        db.commit()
+        if not current_user.email.startswith("guest_"):
+            ai_msg = models.Message(user_id=current_user.id, role="ai", content=ai_response)
+            db.add(ai_msg)
+            db.commit()
         
         response = client.audio.speech.create(
             model="tts-1",
@@ -293,7 +320,13 @@ async def chat(request: ChatRequest, db: Session = Depends(database.get_db), cur
 
 @app.post("/talk")
 async def talk(file: UploadFile = File(...), db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_subscribed_user)):
-    
+    # Guest Limit Check
+    if current_user.email.startswith("guest_"):
+        count = guest_usage.get(current_user.email, 0)
+        if count >= GUEST_LIMIT:
+             return JSONResponse(content={"error": "Guest limit reached", "is_guest_limit": True}, status_code=403)
+        guest_usage[current_user.email] = count + 1
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
         temp_audio.write(await file.read())
         temp_audio_path = temp_audio.name
@@ -309,12 +342,18 @@ async def talk(file: UploadFile = File(...), db: Session = Depends(database.get_
         print(f"User said: {user_text}")
         
         # Save User Message
-        user_msg = models.Message(user_id=current_user.id, role="user", content=user_text)
-        db.add(user_msg)
-        db.commit()
+        if not current_user.email.startswith("guest_"):
+            user_msg = models.Message(user_id=current_user.id, role="user", content=user_text)
+            db.add(user_msg)
+            db.commit()
 
         # Build Context
-        context = get_chat_context(current_user.id, db)
+        if current_user.email.startswith("guest_"):
+            context = [{"role": "system", "content": get_dynamic_prompt()}]
+            context.append({"role": "user", "content": user_text})
+        else:
+            context = get_chat_context(current_user.id, db)
+            context.append({"role": "user", "content": user_text}) # Add current message
 
         completion = client.chat.completions.create(
             model="gpt-4o",
@@ -323,9 +362,10 @@ async def talk(file: UploadFile = File(...), db: Session = Depends(database.get_
         ai_text = completion.choices[0].message.content
         
         # Save AI Message
-        ai_msg = models.Message(user_id=current_user.id, role="ai", content=ai_text)
-        db.add(ai_msg)
-        db.commit()
+        if not current_user.email.startswith("guest_"):
+            ai_msg = models.Message(user_id=current_user.id, role="ai", content=ai_text)
+            db.add(ai_msg)
+            db.commit()
         
         print(f"AI said: {ai_text}")
 
