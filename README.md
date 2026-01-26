@@ -1,52 +1,77 @@
 # MindSync AI (マインドシンクAI)
 
-MindSync AI is a compassionate, voice-enabled AI psychologist designed to provide a safe and non-judgmental space for emotional support. It is fully localized in Japanese and features a premium subscription model.
+MindSync AI is a compassionate, voice-enabled AI psychologist designed to provide a safe and non-judgmental space for emotional support. Fully localized in Japanese with a premium subscription model.
 
 ## Features (機能)
 
-- **Japanese Psychologist Persona**: "MindSync AI" acts as an experienced, empathetic Japanese counselor.
-- **Voice Interaction**: "Hold to Speak" (長押しして話す) functionality for natural voice conversations using OpenAI Whisper and TTS.
-- **User Authentication**: Secure Email/Password registration and login system.
-- **Premium Subscription**: Integrated Stripe payments for monthly subscriptions ($9.99/mo).
-    - **Paywall**: Restricts access to AI features for non-subscribed users.
-    - **My Account**: Manage subscription status and logout.
-- **Chat History**: Conversations are saved to a local SQLite database and restored upon login.
+### Core
+- 🎙️ **Voice Interaction**: "Hold to Speak" for natural voice conversations (OpenAI Whisper + TTS)
+- 💬 **Text Chat**: Type and receive instant AI responses
+- 🧠 **Japanese Psychologist Persona**: Empathetic counselor with "Aizuchi" (相槌) listening style
+- 📜 **Chat History**: Conversations saved and restored upon login
+
+### Authentication & Subscription
+- 🔐 **User Authentication**: Email/Password registration and login
+- 👤 **Guest Mode**: Try 3 free messages without registration
+- 💳 **Premium Plans**: Stripe integration
+  - Monthly: $9.99/月
+  - Yearly: $99.99/年 (お得！)
+- 📦 **Customer Portal**: Manage/cancel subscription via Stripe
+
+### Safety & Security
+- 🚨 **Crisis Detection**: Detects crisis keywords and shows Japan hotlines
+  - いのちの電話: 0120-783-556
+  - よりそいホットライン: 0120-279-338
+- 🔑 **Password Reset**: Forgot password flow with reset link
+- 📷 **Profile Pictures**: Upload custom avatar or use default
 
 ## Tech Stack (技術スタック)
 
-- **Backend**: FastAPI (Python)
-- **Database**: SQLite (via SQLAlchemy)
-- **Frontend**: HTML/CSS/JS (Vanilla)
-- **AI Models**: OpenAI GPT-4o (Chat), Whisper (STT), TTS-1 (Audio)
-- **Payments**: Stripe API
+| Layer | Technology |
+|-------|------------|
+| Backend | FastAPI (Python) |
+| Database | PostgreSQL (Vercel) / SQLite (Local) |
+| Frontend | HTML/CSS/JS (Vanilla) |
+| AI | OpenAI GPT-4o, Whisper, TTS-1 |
+| Payments | Stripe API |
+| Hosting | Vercel |
 
 ## Setup (セットアップ)
 
-1.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+1. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2.  **Configure Environment**:
-    Create a `.env` file in the root directory with the following variables:
-    ```env
-    OPENAI_API_KEY=sk-...
-    STRIPE_SECRET_KEY=sk_test_...
-    STRIPE_WEBHOOK_SECRET=whsec_...
-    ```
+2. **Configure Environment** (`.env`):
+   ```env
+   OPENAI_API_KEY=sk-...
+   STRIPE_SECRET_KEY=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   DATABASE_URL=postgresql://...  # Optional, for production
+   ```
 
-3.  **Run the Server**:
-    ```bash
-    python main.py
-    ```
-    *The database (`sql_app.db`) will be created automatically on the first run.*
+3. **Run the Server**:
+   ```bash
+   python main.py
+   ```
 
-4.  **Access the App**:
-    Open `http://localhost:8000` in your browser.
+4. **Access**: `http://localhost:8000`
+
+## Deployment (Vercel)
+
+1. Push to GitHub
+2. Import to Vercel
+3. Add environment variables
+4. Run `/db-migrate` after first deploy
 
 ## Usage (使い方)
 
-1.  **Register/Login**: Create an account to get started.
-2.  **Subscribe**: Use a Stripe Test Card (e.g., `4242...`) to subscribe to the Premium plan.
-3.  **Chat**: Type or hold the microphone button to speak with the AI in Japanese.
-4.  **History**: Refresh the page or log in again to see your past conversations.
+1. **Register/Login** or try as Guest
+2. **Subscribe** with Stripe Test Card: `4242 4242 4242 4242`
+3. **Chat** via text or voice
+4. **Manage Account** via header avatar
+
+## License
+
+MIT
