@@ -568,8 +568,51 @@
             <button class="primary-btn" id="authSubmitBtn">ログイン</button>
             <button class="secondary-btn" id="guestBtn"
                 style="margin-top: 10px; border-color: #DAA520; color: #DAA520;">ゲストとして試す (3回まで)</button>
+            <div class="auth-switch" id="forgotPasswordBtn" style="margin-top: 10px; color: #888; cursor: pointer;">
+                パスワードを忘れた方</div>
             <div class="auth-switch" id="authSwitchBtn">アカウントをお持ちでない方は登録</div>
             <div id="authError" style="color: red; margin-top: 10px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal-overlay hidden" id="forgotPasswordModal">
+        <div class="modal-box">
+            <span class="modal-close" id="forgotPasswordCloseBtn">&times;</span>
+            <h2>パスワードリセット</h2>
+            <p style="margin-bottom: 20px; color: #aaa;">登録したメールアドレスを入力してください。</p>
+            <input type="email" id="forgotEmail" class="auth-input" placeholder="メールアドレス">
+            <button class="primary-btn" id="forgotSubmitBtn">リセットリンクを送信</button>
+            <div id="forgotMessage" style="margin-top: 15px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div class="modal-overlay hidden" id="resetPasswordModal">
+        <div class="modal-box">
+            <h2>新しいパスワード</h2>
+            <p style="margin-bottom: 20px; color: #aaa;">新しいパスワードを入力してください。</p>
+            <input type="password" id="newPassword" class="auth-input" placeholder="新しいパスワード">
+            <input type="password" id="confirmPassword" class="auth-input" placeholder="パスワード確認">
+            <button class="primary-btn" id="resetSubmitBtn">パスワードを変更</button>
+            <div id="resetMessage" style="margin-top: 15px; font-size: 0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- Crisis Hotline Modal -->
+    <div class="modal-overlay hidden" id="crisisModal">
+        <div class="modal-box" style="border-color: #ff4444;">
+            <span class="modal-close" id="crisisCloseBtn">&times;</span>
+            <h2 style="color: #ff6666;">緊急連絡先</h2>
+            <p style="margin: 20px 0; line-height: 1.8; text-align: left;">
+                あなたのことを心配しています。<br>
+                一人で抱え込まないでください。<br><br>
+                <strong style="color: #fff;">いのちの電話:</strong> 0120-783-556<br>
+                <strong style="color: #fff;">よりそいホットライン:</strong> 0120-279-338<br>
+                <strong style="color: #fff;">こころの健康相談統一ダイヤル:</strong> 0570-064-556<br><br>
+                専門家に相談することをお勧めします。
+            </p>
+            <button class="primary-btn" id="crisisOkBtn" style="background: #ff6666;">わかりました</button>
         </div>
     </div>
 
@@ -761,6 +804,14 @@
             // Check for Stripe success/cancel params
             const urlParams = new URLSearchParams(window.location.search);
             const sessionId = urlParams.get('session_id');
+            const resetToken = urlParams.get('reset_token');
+
+            // Check for Password Reset Token
+            if (resetToken) {
+                authModal.classList.add('hidden');
+                document.getElementById('resetPasswordModal').classList.remove('hidden');
+                return;
+            }
 
             if (urlParams.get('success') && sessionId && token) {
                 try {
@@ -884,6 +935,103 @@
             localStorage.removeItem('access_token');
             location.reload(); // Reload to show Auth Modal
         });
+
+        // --- Forgot Password Logic ---
+        document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+            authModal.classList.add('hidden');
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+        });
+
+        document.getElementById('forgotPasswordCloseBtn').addEventListener('click', () => {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+            authModal.classList.remove('hidden');
+        });
+
+        document.getElementById('forgotSubmitBtn').addEventListener('click', async () => {
+            const email = document.getElementById('forgotEmail').value;
+            const msgDiv = document.getElementById('forgotMessage');
+
+            if (!email) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'メールアドレスを入力してください。';
+                return;
+            }
+
+            try {
+                const res = await fetch('/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                msgDiv.style.color = 'green';
+                msgDiv.innerText = data.message;
+
+                // For demo: show reset link
+                if (data.reset_link) {
+                    msgDiv.innerHTML += `<br><small style="color: #888;">(デモ用) <a href="${data.reset_link}" style="color: #DAA520;">リセットリンク</a></small>`;
+                }
+            } catch (err) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'エラーが発生しました。';
+            }
+        });
+
+        // --- Reset Password Logic ---
+        document.getElementById('resetSubmitBtn').addEventListener('click', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resetToken = urlParams.get('reset_token');
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const msgDiv = document.getElementById('resetMessage');
+
+            if (!newPassword || !confirmPassword) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = '全ての項目を入力してください。';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'パスワードが一致しません。';
+                return;
+            }
+
+            try {
+                const res = await fetch('/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: resetToken, new_password: newPassword })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msgDiv.style.color = 'green';
+                    msgDiv.innerText = data.message + ' ログイン画面に戻ります...';
+                    setTimeout(() => {
+                        window.history.replaceState({}, document.title, "/");
+                        location.reload();
+                    }, 2000);
+                } else {
+                    msgDiv.style.color = 'red';
+                    msgDiv.innerText = data.detail;
+                }
+            } catch (err) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'エラーが発生しました。';
+            }
+        });
+
+        // --- Crisis Modal Logic ---
+        document.getElementById('crisisCloseBtn').addEventListener('click', () => {
+            document.getElementById('crisisModal').classList.add('hidden');
+        });
+        document.getElementById('crisisOkBtn').addEventListener('click', () => {
+            document.getElementById('crisisModal').classList.add('hidden');
+        });
+
+        function showCrisisModal() {
+            document.getElementById('crisisModal').classList.remove('hidden');
+        }
 
         // --- Account Modal Logic ---
         headerAvatar.addEventListener('click', () => {
@@ -1291,6 +1439,10 @@
                     statusText.innerText = "エラー: " + data.error;
                 } else {
                     handleAIResponse(data.response, data.audio);
+                    // Check for crisis
+                    if (data.crisis_detected) {
+                        showCrisisModal();
+                    }
                 }
 
             } catch (error) {
@@ -1338,6 +1490,11 @@
 
                 addMessageToLog("user", data.user_text);
                 handleAIResponse(data.ai_text, data.audio);
+
+                // Check for crisis
+                if (data.crisis_detected) {
+                    showCrisisModal();
+                }
 
             } catch (error) {
                 console.error(error);

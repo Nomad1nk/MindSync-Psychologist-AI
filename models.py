@@ -13,6 +13,8 @@ class User(Base):
     is_subscribed = Column(Boolean, default=False)
     stripe_customer_id = Column(String, nullable=True)
     profile_picture = Column(String, nullable=True)
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
 
     messages = relationship("Message", back_populates="owner")
 

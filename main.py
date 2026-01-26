@@ -70,6 +70,31 @@ def get_dynamic_prompt():
         current_date=current_date
     )
 
+# Crisis Detection Keywords (Japanese)
+CRISIS_KEYWORDS = [
+    "死にたい", "自殺", "殺したい", "消えたい", "生きたくない",
+    "死のう", "死ぬ", "自傷", "リストカット", "首吊り",
+    "飛び降り", "薬を飲む", "終わりにしたい", "いなくなりたい",
+    "suicide", "kill myself", "want to die", "end my life"
+]
+
+CRISIS_HOTLINES = """
+【緊急連絡先】
+• いのちの電話: 0120-783-556
+• よりそいホットライン: 0120-279-338
+• こころの健康相談統一ダイヤル: 0570-064-556
+
+一人で抱え込まないでください。専門家に相談することをお勧めします。
+"""
+
+def detect_crisis(text: str) -> bool:
+    text_lower = text.lower()
+    for keyword in CRISIS_KEYWORDS:
+        if keyword in text_lower:
+            return True
+    return False
+
+
 def get_chat_context(user_id: int, db: Session):
     # Get last 10 messages
     messages = db.query(models.Message).filter(models.Message.user_id == user_id).order_by(models.Message.timestamp.asc()).limit(20).all()
@@ -127,6 +152,58 @@ async def read_users_me(current_user: models.User = Depends(auth.get_current_use
         "is_subscribed": current_user.is_subscribed,
         "profile_picture": current_user.profile_picture
     }
+
+@app.post("/forgot-password")
+async def forgot_password(request: Request, db: Session = Depends(database.get_db)):
+    import uuid
+    import datetime
+    data = await request.json()
+    email = data.get("email")
+    
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        # Don't reveal if email exists
+        return {"message": "パスワードリセットのリンクを送信しました（メールが登録されている場合）"}
+    
+    # Generate reset token
+    reset_token = str(uuid.uuid4())
+    user.reset_token = reset_token
+    user.reset_token_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    db.commit()
+    
+    # In production, send email. For now, return the link (demo only)
+    base_url = str(request.base_url).rstrip("/")
+    reset_link = f"{base_url}/?reset_token={reset_token}"
+    
+    return {
+        "message": "パスワードリセットのリンクを送信しました",
+        "reset_link": reset_link  # Remove this in production
+    }
+
+@app.post("/reset-password")
+async def reset_password(request: Request, db: Session = Depends(database.get_db)):
+    import datetime
+    data = await request.json()
+    token = data.get("token")
+    new_password = data.get("new_password")
+    
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="Token and new password required")
+    
+    user = db.query(models.User).filter(models.User.reset_token == token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="無効なトークンです")
+    
+    if user.reset_token_expires < datetime.datetime.utcnow():
+        raise HTTPException(status_code=400, detail="トークンの有効期限が切れています")
+    
+    # Update password
+    user.hashed_password = auth.get_password_hash(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.commit()
+    
+    return {"message": "パスワードが正常にリセットされました"}
 
 # --- Subscription Endpoints ---
 
@@ -272,6 +349,9 @@ async def get_history(db: Session = Depends(database.get_db), current_user: mode
 async def chat(request: ChatRequest, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_subscribed_user)):
     user_text = request.message
     
+    # Crisis Detection
+    crisis_detected = detect_crisis(user_text)
+    
     # Guest Limit Check
     if current_user.email.startswith("guest_"):
         count = guest_usage.get(current_user.email, 0)
@@ -315,7 +395,9 @@ async def chat(request: ChatRequest, db: Session = Depends(database.get_db), cur
 
         return {
             "response": ai_response,
-            "audio": audio_base64
+            "audio": audio_base64,
+            "crisis_detected": crisis_detected,
+            "crisis_hotlines": CRISIS_HOTLINES if crisis_detected else None
         }
     except Exception as e:
         print(f"Error: {e}")
@@ -343,6 +425,9 @@ async def talk(file: UploadFile = File(...), db: Session = Depends(database.get_
             )
         user_text = transcript.text
         print(f"User said: {user_text}")
+        
+        # Crisis Detection
+        crisis_detected = detect_crisis(user_text)
         
         # Save User Message
         if not current_user.email.startswith("guest_"):
@@ -383,7 +468,9 @@ async def talk(file: UploadFile = File(...), db: Session = Depends(database.get_
         return JSONResponse(content={
             "user_text": user_text,
             "ai_text": ai_text,
-            "audio": audio_base64
+            "audio": audio_base64,
+            "crisis_detected": crisis_detected,
+            "crisis_hotlines": CRISIS_HOTLINES if crisis_detected else None
         })
 
     except Exception as e:
@@ -405,8 +492,10 @@ def db_migrate(db: Session = Depends(database.get_db)):
     try:
         from sqlalchemy import text
         db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR;"))
+        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR;"))
+        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP;"))
         db.commit()
-        return {"message": "Migration successful: Added profile_picture column"}
+        return {"message": "Migration successful: Added profile_picture, reset_token, reset_token_expires columns"}
     except Exception as e:
         return {"error": str(e)}
 
