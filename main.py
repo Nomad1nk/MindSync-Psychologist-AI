@@ -124,7 +124,8 @@ async def guest_token():
 async def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     return {
         "email": current_user.email, 
-        "is_subscribed": current_user.is_subscribed
+        "is_subscribed": current_user.is_subscribed,
+        "profile_picture": current_user.profile_picture
     }
 
 # --- Subscription Endpoints ---
