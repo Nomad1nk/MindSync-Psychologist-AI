@@ -150,4 +150,4 @@
 ### ご質問はありますか？
 
 📧 連絡先: [nomad2nk@yahoo.com]  
-🌐 URL: https://mindsync-ai.vercel.app
+🌐 URL: [https://mindsync-ai.vercel.app](https://mind-sync-psychologist-ai.vercel.app/)
