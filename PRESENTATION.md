@@ -107,7 +107,7 @@
 
 ### 🖥️ 実際に見てみましょう
 
-**デモURL**: https://mindsync-ai.vercel.app
+**デモURL**: [https://[(https://mind-sync-psychologist-ai.vercel.app)]
 
 1. ゲストモードでお試し
 2. 音声で話しかける
