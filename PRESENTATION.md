@@ -149,5 +149,5 @@
 
 ### ご質問はありますか？
 
-📧 連絡先: [あなたのメールアドレス]  
+📧 連絡先: [nomad2nk@yahoo.com]  
 🌐 URL: https://mindsync-ai.vercel.app
