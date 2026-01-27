@@ -5,25 +5,25 @@ MindSync AI is a compassionate, voice-enabled AI psychologist designed to provid
 ## Features (機能)
 
 ### Core
-- 🎙️ **Voice Interaction**: "Hold to Speak" for natural voice conversations (OpenAI Whisper + TTS)
-- 💬 **Text Chat**: Type and receive instant AI responses
-- 🧠 **Japanese Psychologist Persona**: Empathetic counselor with "Aizuchi" (相槌) listening style
-- 📜 **Chat History**: Conversations saved and restored upon login
+-  **Voice Interaction**: "Hold to Speak" for natural voice conversations (OpenAI Whisper + TTS)
+-  **Text Chat**: Type and receive instant AI responses
+-  **Japanese Psychologist Persona**: Empathetic counselor with "Aizuchi" (相槌) listening style
+-  **Chat History**: Conversations saved and restored upon login
 
 ### Authentication & Subscription
-- 🔐 **User Authentication**: Email/Password registration and login
-- 👤 **Guest Mode**: Try 3 free messages without registration
-- 💳 **Premium Plans**: Stripe integration
+-  **User Authentication**: Email/Password registration and login
+-  **Guest Mode**: Try 3 free messages without registration
+-  **Premium Plans**: Stripe integration
   - Monthly: $9.99/月
   - Yearly: $99.99/年 (お得！)
-- 📦 **Customer Portal**: Manage/cancel subscription via Stripe
+-  **Customer Portal**: Manage/cancel subscription via Stripe
 
 ### Safety & Security
-- 🚨 **Crisis Detection**: Detects crisis keywords and shows Japan hotlines
+-  **Crisis Detection**: Detects crisis keywords and shows Japan hotlines
   - いのちの電話: 0120-783-556
   - よりそいホットライン: 0120-279-338
-- 🔑 **Password Reset**: Forgot password flow with reset link
-- 📷 **Profile Pictures**: Upload custom avatar or use default
+-  **Password Reset**: Forgot password flow with reset link
+-  **Profile Pictures**: Upload custom avatar or use default
 
 ## Tech Stack (技術スタック)
 
